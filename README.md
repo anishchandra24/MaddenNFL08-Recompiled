@@ -4,7 +4,7 @@
 
 A native Windows port of EA Sports Madden NFL 08 for the Xbox 360, made with static recompilation via the ReXGlue SDK.
 
-> Unofficial fan project. Not affiliated with or endorsed by Electronic Arts, EA Sports, EA Tiburon, the NFL or the NFL Players Association. All trademarks belong to their owners. This repository contains no game files and no game code. The banner image uses artwork owned by its respective owners, for identification only. You need your own legally obtained copy of the game. Requests for or links to game files will be removed.
+> Unofficial fan project. Not affiliated with or endorsed by Electronic Arts, EA Sports, EA Tiburon, the NFL or the NFL Players Association. All trademarks belong to their owners. This repository contains no game files and no game code. The banner image and screenshots use artwork and logos owned by their respective owners, for identification only. You need your own legally obtained copy of the game. Requests for or links to game files will be removed.
 
 ## What this is
 
@@ -14,6 +14,16 @@ This repository holds the pieces that make the ReXGlue SDK work with Madden NFL 
 - `patches/texture_mip_layout.patch`: ports fixes from Xenia Canary's texture layout code, so the smaller (mip-mapped) versions of array and volume textures are read from the right place. This fixes the jumbled jersey names and numbers, the names under the players and the helmets.
 
 The game itself is translated on your own computer from your own copy.
+
+## Screenshots
+
+Taken from the running port.
+
+![Title screen](docs/screenshots/01-title-screen.png)
+
+![Main menu](docs/screenshots/02-main-menu.png)
+
+![In game](docs/screenshots/03-in-game.png)
 
 ## Status
 
@@ -139,4 +149,4 @@ This project was developed in a chat conversation with Claude, an AI assistant b
 
 ## License
 
-The files in this repository are released under the GNU General Public License v3.0 (see LICENSE). The license covers only what this project is entitled to license. It grants no rights to the game's files, or to anything generated from them on your own computer. The banner image shows artwork and logos owned by their respective owners and is not covered by this license. The patches modify code from the ReXGlue SDK and Xenia, which keep their own BSD licenses (see THIRD_PARTY_NOTICES.md).
+The files in this repository are released under the GNU General Public License v3.0 (see LICENSE). The license covers only what this project is entitled to license. It grants no rights to the game's files, or to anything generated from them on your own computer. The banner image and the screenshots show artwork and logos owned by their respective owners and are not covered by this license. The patches modify code from the ReXGlue SDK and Xenia, which keep their own BSD licenses (see THIRD_PARTY_NOTICES.md).
