@@ -1,0 +1,81 @@
+diff --git a/include/rex/graphics/pipeline/texture/util.h b/include/rex/graphics/pipeline/texture/util.h
+index 2c9fad6..957a42f 100644
+--- a/include/rex/graphics/pipeline/texture/util.h
++++ b/include/rex/graphics/pipeline/texture/util.h
+@@ -293,9 +293,13 @@ inline uint32_t GetTiledAddressLowerBound2D(uint32_t left, uint32_t top, uint32_
+ inline uint32_t GetTiledAddressLowerBound3D(uint32_t left, uint32_t top, uint32_t front,
+                                             uint32_t pitch, uint32_t height,
+                                             uint32_t bytes_per_block_log2) {
++  uint32_t front_aligned = front & ~(xenos::kTextureTileDepth - 1);
++  uint32_t top_aligned = top & ~(xenos::kTextureTileWidthHeight - 1);
++  if (front_aligned & xenos::kTextureTileDepth) {
++    top_aligned += 8;
++  }
+   return uint32_t(GetTiledOffset3D(int32_t(left & ~(xenos::kTextureTileWidthHeight - 1)),
+-                                   int32_t(top & ~(xenos::kTextureTileWidthHeight - 1)),
+-                                   int32_t(front & ~(xenos::kTextureTileDepth)), pitch, height,
++                                   int32_t(top_aligned), int32_t(front_aligned), pitch, height,
+                                    bytes_per_block_log2));
+ }
+ // Supporting the right > pitch and bottom > height (in tiles) cases also, for
+diff --git a/src/graphics/pipeline/texture/util.cpp b/src/graphics/pipeline/texture/util.cpp
+index 26d554c..6447811 100644
+--- a/src/graphics/pipeline/texture/util.cpp
++++ b/src/graphics/pipeline/texture/util.cpp
+@@ -183,8 +183,8 @@ bool GetPackedMipOffset(uint32_t width, uint32_t height, uint32_t depth,
+     if (offset < 4) {
+       // Pack 1x1 Z mipmaps along Z - not reached for 2D.
+       uint32_t log2_depth = rex::log2_ceil(depth);
+-      if (log2_depth > 1 + packed_mip) {
+-        z_blocks = (log2_depth - packed_mip) * 4;
++      if (log2_depth > 1 + mip) {
++        z_blocks = (log2_depth - mip) * 4;
+       } else {
+         z_blocks = 4;
+       }
+@@ -233,6 +233,11 @@ TextureGuestLayout GetGuestTextureLayout(xenos::DataDimension dimension,
+     std::memset(&layout, 0, sizeof(layout));
+     return layout;
+   }
++  // D3D's FindTextureSize aligns non-base 2D array levels to four slices.
++  uint32_t mip_array_size =
++      dimension == xenos::DataDimension::k2DOrStacked && layout.array_size > 1
++          ? rex::align(layout.array_size, xenos::kTextureTileDepth)
++          : layout.array_size;
+ 
+   // For safety, clamp the maximum level.
+   uint32_t max_level_for_dimensions =
+@@ -330,8 +335,9 @@ TextureGuestLayout GetGuestTextureLayout(xenos::DataDimension dimension,
+         level_layout.row_pitch_bytes * level_layout.z_slice_stride_block_rows;
+     uint32_t z_stride_bytes = level_layout.array_slice_stride_bytes;
+     if (dimension == xenos::DataDimension::k3D) {
+-      level_layout.array_slice_stride_bytes *=
+-          rex::align(depth_or_array_size, xenos::kTextureTileDepth);
++      level_layout.array_slice_stride_bytes *= rex::align(
++          is_base ? depth : std::max(rex::next_pow2(depth) >> level, uint32_t(1)),
++          xenos::kTextureTileDepth);
+     }
+     level_layout.array_slice_stride_bytes =
+         rex::align(level_layout.array_slice_stride_bytes, xenos::kTextureSubresourceAlignmentBytes);
+@@ -414,7 +420,7 @@ TextureGuestLayout GetGuestTextureLayout(xenos::DataDimension dimension,
+       layout.mip_offsets_bytes[level] = mip_offset_bytes;
+       layout.mips_total_extent_bytes = std::max(
+           layout.mips_total_extent_bytes, mip_offset_bytes + level_layout.level_data_extent_bytes);
+-      mip_offset_bytes += level_layout.array_slice_stride_bytes * layout.array_size;
++      mip_offset_bytes += level_layout.array_slice_stride_bytes * mip_array_size;
+     }
+   }
+ 
+@@ -504,6 +510,12 @@ uint32_t GetTiledAddressUpperBound3D(uint32_t right, uint32_t bottom, uint32_t b
+       // - Pitch = 64, 128, 192...: (Pitch / 64) * 0x1000 + 0xC00
+       upper_bound +=
+           ((pitch_aligned >> 6) << 12) + 0xC00 + ((pitch_aligned & (1 << 5)) << (10 - 5));
++      // There's one extra case where the last bank sits 0x800 past the base
++      // extent: if pitch and X are both in the second, 32 wide half of their
++      // 64 block wide period, while Z is still in the first 4 slices.
++      if ((pitch_aligned & (1 << 5)) && ((right - 1) & (1 << 5)) && !((back - 1) & (1 << 2))) {
++        upper_bound += 0x800;
++      }
+       break;
+     default:
+       // 32x32x8 portions have independent addressing.
