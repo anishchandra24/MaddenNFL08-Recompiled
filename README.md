@@ -4,7 +4,7 @@
 
 A native Windows port of EA Sports Madden NFL 08 for the Xbox 360, made with static recompilation via the ReXGlue SDK.
 
-> Unofficial fan project. Not affiliated with or endorsed by Electronic Arts, EA Sports, EA Tiburon, the NFL or the NFL Players Association. All trademarks belong to their owners. This repository contains no game files and no game code. The banner image uses artwork and logos owned by their respective owners, for identification only. You need your own legally obtained copy of the game. Requests for or links to game files will be removed.
+> Unofficial fan project. Not affiliated with or endorsed by Electronic Arts, EA Sports, EA Tiburon, the NFL or the NFL Players Association. All trademarks belong to their owners. This repository contains no game files and no game code. The banner image uses artwork owned by its respective owners, for identification only. You need your own legally obtained copy of the game. Requests for or links to game files will be removed.
 
 ## What this is
 
@@ -97,9 +97,14 @@ Please do not post or link game files. Requests for game files will be removed.
 
 Keyboard mode must be on (`mnk_mode`); the launcher and shortcut turn it on. Defaults:
 - Start: Enter or X
-- A: Space or ;  B: Backspace or '  X: L  Y: P
-- Left stick: W A S D   Right stick: arrow keys
-- Triggers: Q / E (or I / O)   Shoulders: 1 and 3
+- A: Space or ;
+- B: Backspace or '
+- X: L
+- Y: P
+- Left stick: W A S D
+- Right stick: arrow keys
+- Triggers: Q / E (or I / O)
+- Shoulders: 1 and 3
 - Back: Tab or Z
 - F3 shows performance info, F4 shows settings
 
