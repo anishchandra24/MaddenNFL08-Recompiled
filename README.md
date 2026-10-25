@@ -31,26 +31,37 @@ Known issues:
 - The first time a new scene appears, the game can hitch for a moment while graphics shaders are built. It is smooth the next time. Short stutters can also happen when a game loads.
 - Jersey numbers with a single digit (for example a quarterback wearing 8) show an extra 0, as in "80". The Xenia Canary emulator reports the same corruption for single-digit numbers.
 - The countdown beeps during the 40-yard dash in Superstar practice drills do not play.
-- On one first launch the grass looked brown; restarting the game fixed it. The Xenia emulator reports the same.
+- On the first launch on a PC (or the first launch on a new graphics chip), the grass can look brown and the game can lag while shaders are built. Restart the game and it is fine. This happened on both test PCs, and the Xenia emulator reports the same.
+- On low-end PCs the game can run too slowly to play (see "Graphics card and processor" below).
 - Online features do not work, including the NFL news and sports news screens, which need EA's servers.
 
 ## Tested on
 
 - Laptop: AMD Ryzen 7 7735HS, NVIDIA RTX 4060 Laptop GPU, 32 GB RAM, Windows 10 Home. Plays smoothly.
-- This is the only PC it has been tested on so far.
+- Desktop: AMD Ryzen 3 3200G (4 cores, 4 threads), Radeon RX 550 plus the Vega 8 graphics built into the processor, about 14 GB RAM, Windows 10 Home. The setup program installed Git and built everything in about 28 minutes. The RX 550 does not support a graphics feature the game needs, so the screen stays black on it. On the Vega 8 the menus and loading work, but games run far too slowly to play.
 
 ## What you need
 
-- Windows 10 or 11, 64-bit (only Windows 10 has been tested), and a graphics card that supports Direct3D 12
+- Windows 10 or 11, 64-bit (only Windows 10 has been tested), and a graphics card that supports Direct3D 12 with rasterizer-ordered views (see "Graphics card and processor" below)
 - About 10 GB of free disk space for the build, plus room for your extracted game files
 - An internet connection for the first setup (it downloads the ReXGlue SDK and its libraries)
 - Your own copy of Madden NFL 08 for Xbox 360 (Title ID 4541081D), extracted so that `default.xex` and the game's other files sit in one folder. Extract your game's disc image with a tool such as Xbox Image Browser. The supported `default.xex` is 20,529,152 bytes with the SHA-256 hash `962EA344FB966E1BE1C94667D4213A309A69A821AE3BEC0CB2FCA4166ECC6627`. Other releases are not supported, and setup warns you if yours is different.
 - Visual Studio 2022 Community (free), with these parts ticked in the Visual Studio Installer: "Desktop development with C++", "C++ Clang Compiler for Windows" and "C++ CMake tools for Windows". The Build Tools edition and other Visual Studio versions have not been tested.
 - Git for Windows (the setup program under "Easy install" can install Git and Visual Studio for you if they are missing)
 
+### Graphics card and processor
+
+The game needs a graphics card that supports Direct3D 12 "rasterizer-ordered views". The NVIDIA RTX 4060 Laptop GPU and the AMD Radeon Vega 8 (built into some Ryzen processors) both report "yes". The AMD Radeon RX 550 reports "no", and the other RX 400 and 500 series cards are the same generation, so expect the same from them. With such a card the game starts and you can hear it, but the screen stays black.
+
+To check your card, open `dist\Launch Madden NFL 08.bat` in Notepad, change `--log_level=error` to `--log_level=info`, run it once, then open the newest file in `dist\logs`. Near the top, look for "Rasterizer-ordered views: yes" or "no", and for the name of the graphics chip the game picked ("DXGI adapter").
+
+If your PC has a second graphics chip that supports it (for example the one built into the processor), add `--d3d12_adapter=1` to the end of the last line of the launcher, or to the end of the Target box of the desktop shortcut. If that picks the wrong chip, try 0 or 2. Running setup again rewrites the launcher and shortcut, so add the option again afterwards.
+
+The game also needs a fast processor. On a desktop with a 4-core, 4-thread Ryzen 3 3200G and its built-in Vega 8 graphics, the menus and loading worked, but games ran far too slowly to play. It is not known whether the processor, the built-in graphics or both were the limit. The log warns "Too few processor cores" on processors like that.
+
 ## Setup
 
-This is an early version, tested so far on one PC (see "Tested on" above). Reports from other PCs, good or bad, are welcome: please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose).
+This is an early version, tested so far on two PCs (see "Tested on" above). Reports from other PCs, good or bad, are welcome: please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose).
 
 ### Easy install (recommended)
 
@@ -89,7 +100,7 @@ Notes:
 
 ## Reporting problems and test results
 
-Found a bug, or hit a problem during setup? Please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose). Test reports are just as welcome as bug reports, including "it worked": this project has only been tested on one PC, so every report helps. Useful things to include are your Windows version, your CPU, graphics card and RAM, whether setup finished, and the last lines of the logs. The setup program's log is `%TEMP%\Madden08-Setup.log`, and the setup steps log to `.local\logs` inside the install folder.
+Found a bug, or hit a problem during setup? Please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose). Test reports are just as welcome as bug reports, including "it worked": this project has only been tested on two PCs, so every report helps. Useful things to include are your Windows version, your CPU, graphics card and RAM, whether setup finished, and the last lines of the logs. The setup program's log is `%TEMP%\Madden08-Setup.log`, and the setup steps log to `.local\logs` inside the install folder.
 
 Please do not post or link game files. Requests for game files will be removed.
 
