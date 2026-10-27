@@ -1,4 +1,4 @@
-﻿# Madden NFL 08 Recompiled - setup script (checks, SDK download and patches, SDK build, game build, icon, shortcut)
+# Madden NFL 08 Recompiled - setup script (checks, SDK download and patches, SDK build, game build, icon, shortcut)
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\setup.ps1 -GameDataRoot "D:\path\to\extracted\game"
 param(
     [string]$GameDataRoot = "",
@@ -104,9 +104,17 @@ $git = Get-Command git -ErrorAction SilentlyContinue
 if ($git) { Ok ("Git: " + (& git --version)) } else { Bad "Git was not found (install Git for Windows)" }
 
 # CMake
+# Find Visual Studio 2022 with vswhere (any edition, Program Files or Program Files (x86), any drive)
+$VsRoot = "C:\NoVisualStudioFound"
+$vswhereExe = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+if (Test-Path $vswhereExe) {
+    $vsPath = & $vswhereExe -latest -products * -version "[17.0,18.0)" -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang -property installationPath | Select-Object -First 1
+    if (-not $vsPath) { $vsPath = & $vswhereExe -latest -products * -version "[17.0,18.0)" -property installationPath | Select-Object -First 1 }
+    if ($vsPath) { $VsRoot = ([string]$vsPath).Trim() }
+}
 $cmake = Get-Command cmake -ErrorAction SilentlyContinue
 if (-not $cmake) {
-    $cm = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022\*\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $cm = Get-ChildItem "$VsRoot\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($cm) {
         $env:Path = $cm.DirectoryName + ";" + $env:Path
         $cmake = Get-Command cmake -ErrorAction SilentlyContinue
@@ -128,7 +136,7 @@ if ($cmake) {
 # Ninja
 $ninja = Get-Command ninja -ErrorAction SilentlyContinue
 if (-not $ninja) {
-    $found = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022" -Recurse -Depth 8 -Filter ninja.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+    $found = Get-ChildItem "$VsRoot" -Recurse -Depth 8 -Filter ninja.exe -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($found) { Ok "Ninja is bundled with Visual Studio (setup will use it)" ; $ninja = $found }
 }
 if ($ninja) { if (Get-Command ninja -ErrorAction SilentlyContinue) { Ok "Ninja found" } } else { Bad "Ninja was not found" }
@@ -138,7 +146,7 @@ $clangPath = $null
 $clang = Get-Command clang++ -ErrorAction SilentlyContinue
 if ($clang) { $clangPath = $clang.Source }
 else {
-    $c = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\x64\bin\clang++.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $c = Get-ChildItem "$VsRoot\VC\Tools\Llvm\x64\bin\clang++.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($c) { $clangPath = $c.FullName }
 }
 if ($clangPath) { Ok ("Clang: " + (& $clangPath --version | Select-Object -First 1)) } else { Bad "Clang (the C++ Clang tools for Visual Studio 2022) was not found" }
@@ -281,6 +289,7 @@ if ($failed) {
 Write-Host ("Done in {0:N1} minutes. The game is in {1}" -f $sw.Elapsed.TotalMinutes, (Join-Path $RepoRoot "dist")) -ForegroundColor Green
 Write-Host "Start the game from the Madden NFL 08 Recompiled shortcut on your desktop, or dist\Launch Madden NFL 08.bat"
 exit 0
+
 
 
 
