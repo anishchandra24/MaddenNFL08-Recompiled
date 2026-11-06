@@ -21,6 +21,9 @@ $LogDir    = Join-Path $LocalDir "logs"
 $StampFile = Join-Path $LocalDir "sdk-build.stamp"
 $PatchFile2 = Join-Path $RepoRoot "patches\codegen_vector_alias.patch"
 $PatchFile3 = Join-Path $RepoRoot "patches\texture_mip_layout.patch"
+$PatchFile4 = Join-Path $RepoRoot "patches\codegen_dcbz128.patch"
+$PatchFile5 = Join-Path $RepoRoot "patches\graphics_speedups.patch"
+$PatchFile6 = Join-Path $RepoRoot "patches\delete_on_close.patch"
 $failed = $false
 $sw = [Diagnostics.Stopwatch]::StartNew()
 . (Join-Path $PSScriptRoot "libmspack.ps1")
@@ -249,10 +252,61 @@ if (Test-Path -LiteralPath $PatchFile3) {
         }
     }
 }
-# ---- Build the SDK ----
+    # ---- dcbz patch (a plain dcbz clears the whole 128-byte cache line, like the real console) ----
+    $dcbzTarget = Join-Path $SdkDir "src\codegen\builders\system.cpp"
+    if ((Get-Content $dcbzTarget -Raw).Contains("no short cache line")) {
+        Ok "dcbz patch already applied"
+    } else {
+        & git -C $SdkDir apply --whitespace=nowarn $PatchFile4
+        if ($LASTEXITCODE -ne 0) {
+            Warn "dcbz patch did not apply cleanly; retrying while ignoring whitespace differences"
+            & git -C $SdkDir apply --ignore-whitespace --whitespace=nowarn $PatchFile4
+            if ($LASTEXITCODE -ne 0) { throw "The dcbz patch could not be applied" }
+        }
+        if ((Get-Content $dcbzTarget -Raw).Contains("no short cache line")) {
+            Ok "dcbz patch applied"
+        } else {
+            throw "The dcbz patch reported success but the new code is not in the file"
+        }
+    }
+    # ---- Graphics speed-up patch (less work per draw; graphics code built with full optimization) ----
+    $gfxTarget = Join-Path $SdkDir "src\graphics\shared_memory.cpp"
+    if ((Get-Content $gfxTarget -Raw).Contains("speedup2")) {
+        Ok "Graphics speed-up patch already applied"
+    } else {
+        & git -C $SdkDir apply --whitespace=nowarn $PatchFile5
+        if ($LASTEXITCODE -ne 0) {
+            Warn "Graphics speed-up patch did not apply cleanly; retrying while ignoring whitespace differences"
+            & git -C $SdkDir apply --ignore-whitespace --whitespace=nowarn $PatchFile5
+            if ($LASTEXITCODE -ne 0) { throw "The graphics speed-up patch could not be applied" }
+        }
+        if ((Get-Content $gfxTarget -Raw).Contains("speedup2")) {
+            Ok "Graphics speed-up patch applied"
+        } else {
+            throw "The graphics speed-up patch reported success but the new code is not in the file"
+        }
+    }
+
+    # ---- Delete-on-close patch (files the game marks for deletion are deleted when closed; fixes saved highlight replays) ----
+    $docTarget = Join-Path $SdkDir "src\system\xfile.cpp"
+    if ((Get-Content $docTarget -Raw).Contains("closing_entry")) {
+        Ok "Delete-on-close patch already applied"
+    } else {
+        & git -C $SdkDir apply --whitespace=nowarn $PatchFile6
+        if ($LASTEXITCODE -ne 0) {
+            Warn "Delete-on-close patch did not apply cleanly; retrying while ignoring whitespace differences"
+            & git -C $SdkDir apply --ignore-whitespace --whitespace=nowarn $PatchFile6
+            if ($LASTEXITCODE -ne 0) { throw "The delete-on-close patch could not be applied" }
+        }
+        if ((Get-Content $docTarget -Raw).Contains("closing_entry")) {
+            Ok "Delete-on-close patch applied"
+        } else {
+            throw "The delete-on-close patch reported success but the new code is not in the file"
+        }
+    }# ---- Build the SDK ----
     Write-Host ""
     Write-Host "--- Building the SDK (the slow step: expect a while the first time) ---"
-    $stamp = $SdkCommit + "|" + (Get-FileHash -LiteralPath $PatchFile2 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile3 -Algorithm SHA256).Hash
+    $stamp = $SdkCommit + "|" + (Get-FileHash -LiteralPath $PatchFile2 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile3 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile4 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile5 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile6 -Algorithm SHA256).Hash
     $haveStamp = (Test-Path $StampFile) -and ((Get-Content $StampFile -Raw).Trim() -eq $stamp)
     $runtimeDll = Join-Path $SdkInstallDir "bin\rexruntimerd.dll"
     if ($haveStamp -and (Test-Path $runtimeDll) -and (-not $Rebuild)) {

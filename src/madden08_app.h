@@ -99,10 +99,10 @@ class Madden08App : public rex::ReXApp {
 
   // Experiment for the "cache:" drive Madden NFL 08 asks for at startup.
   // Chosen with the MADDEN08_CACHE_MODE environment variable:
-  //   0 (or unset) = do nothing (the SDK default)
+  //   0 = do nothing (the SDK default)
   //   1 = add "cache:", "cache0:" and "cache1:" links that point at the SDK's
   //       existing (null) cache partitions
-  //   2 = as 1, but back Cache0/Cache1 with real folders on this PC
+  //   2 (default) = as 1, but back Cache0/Cache1 with real folders on this PC;
   void MountCacheDrives() {
     if (cache_done_) {
       return;
@@ -113,7 +113,7 @@ class Madden08App : public rex::ReXApp {
     }
     cache_done_ = true;
     const char* env = std::getenv("MADDEN08_CACHE_MODE");
-    int mode = env ? std::atoi(env) : 1;
+    int mode = env ? std::atoi(env) : 2;
     REXLOG_INFO("madden08: cache mode {}", mode);
     if (mode <= 0) {
       return;

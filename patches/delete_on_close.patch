@@ -1,0 +1,22 @@
+diff --git a/src/system/xfile.cpp b/src/system/xfile.cpp
+--- a/src/system/xfile.cpp
++++ b/src/system/xfile.cpp
+@@ -37,7 +37,18 @@ XFile::XFile() : XObject(kObjectType) {
+ XFile::~XFile() {
+   // TODO(benvanik): signal that the file is closing?
+   async_event_->Set();
++  // delete_on_close: NtSetInformationFile only marks the entry; delete it once
++  // the file is closed, like the real kernel. Without this a marked file stays,
++  // and creating it again fails with a name collision (Madden NFL 08 could not
++  // save its halftime and postgame highlight replays).
++  rex::filesystem::Entry* closing_entry = file_->entry();
+   file_->Destroy();
++  if (closing_entry && closing_entry->delete_on_close() && closing_entry->parent()) {
++    closing_entry->SetForDeletion(false);
++    if (!closing_entry->Delete()) {
++      REXSYS_WARN("delete_on_close: could not delete {}", closing_entry->path());
++    }
++  }
+ }
+ 
+ uint64_t XFile::position() const {

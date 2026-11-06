@@ -30,8 +30,8 @@ Taken from the running port.
 Works:
 - Boots, intro videos, menus, Play Now games, the field, crowd, player models, jersey names and numbers, and helmets
 - Saving and loading
-- Franchise and Superstar mode: starting, playing and saving worked in short tests
-- Watching replays during a game
+- Franchise mode, including simming a full season and the draft; Superstar mode in short tests
+- Watching replays during a game, and the halftime and postgame highlights
 - Music and sound
 - Keyboard input (and an XInput game controller)
 - The game's own icon on the window, taskbar and shortcut
