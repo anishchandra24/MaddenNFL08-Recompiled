@@ -6,7 +6,7 @@ This project builds on the software below. Their licenses apply to their code.
 
 https://github.com/rexglue/rexglue-sdk
 
-The patches in this repository modify files from the ReXGlue SDK, and the build uses the SDK at version 0.10.0: patches/codegen_vector_alias.patch changes src/codegen/builders/vector.cpp, and patches/texture_mip_layout.patch changes src/graphics/pipeline/texture/util.cpp and include/rex/graphics/pipeline/texture/util.h. The SDK's license text, copied unchanged:
+The patches in this repository modify files from the ReXGlue SDK, and the build uses the SDK at version 0.10.0: patches/codegen_vector_alias.patch changes src/codegen/builders/vector.cpp; patches/texture_mip_layout.patch changes src/graphics/pipeline/texture/util.cpp and include/rex/graphics/pipeline/texture/util.h; patches/codegen_dcbz128.patch changes src/codegen/builders/system.cpp; patches/graphics_speedups.patch changes src/graphics/CMakeLists.txt, src/graphics/command_processor.cpp and src/graphics/shared_memory.cpp; patches/delete_on_close.patch changes src/system/xfile.cpp; and patches/stacked_border.patch changes src/graphics/pipeline/shader/dxbc_translator_fetch.cpp. The SDK's license text, copied unchanged:
 
     Copyright (c) 2026, Tom Clay <tomc@tctechstuff.com>
     

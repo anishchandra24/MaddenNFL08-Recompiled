@@ -8,10 +8,14 @@ A native Windows port of EA Sports Madden NFL 08 for the Xbox 360, made with sta
 
 ## What this is
 
-This repository holds the pieces that make the ReXGlue SDK work with Madden NFL 08: the fix list that lets the recompiler understand the game, a small launcher program, and two small patches to the SDK:
+This repository holds the pieces that make the ReXGlue SDK work with Madden NFL 08: the fix list that lets the recompiler understand the game, a small launcher program, and six small patches to the SDK:
 
 - `patches/codegen_vector_alias.patch`: fixes a bug in the SDK's code generator. Some Xbox 360 vector pack instructions wrote their result while still reading their input, which corrupted video frames, player poses, the field and crowd, and text.
 - `patches/texture_mip_layout.patch`: ports fixes from Xenia Canary's texture layout code, so the smaller (mip-mapped) versions of array and volume textures are read from the right place. This fixes the jumbled jersey names and numbers, the names under the players and the helmets.
+- `patches/codegen_dcbz128.patch`: fixes the code generator's cache-clearing instruction, which cleared 32 bytes where the Xbox 360 clears 128.
+- `patches/graphics_speedups.patch`: less work per draw in the graphics code, and that code built with full optimization.
+- `patches/delete_on_close.patch`: files the game marks for deletion are now deleted when closed. Without it the game could not save the highlight clips shown at halftime and after the game.
+- `patches/stacked_border.patch`: fixes the shader translator for layered textures. The game hides the unused digit of single-digit jersey numbers by asking for a layer outside the texture, which the Xbox 360 draws as blank; on PC it showed up as an extra 0.
 
 The game itself is translated on your own computer from your own copy.
 
@@ -39,7 +43,6 @@ Works:
 Known issues:
 - Tiny white lines can flicker in a few places before the snap. They do not affect play.
 - The first time a new scene appears, the game can hitch for a moment while graphics shaders are built. It is smooth the next time. Short stutters can also happen when a game loads.
-- Jersey numbers with a single digit (for example a quarterback wearing 8) show an extra 0, as in "80". The Xenia Canary emulator reports the same corruption for single-digit numbers.
 - The countdown beeps during the 40-yard dash in Superstar practice drills do not play.
 - On the first launch on a PC (or the first launch on a new graphics chip), the grass can look brown and the game can lag while shaders are built. Restart the game and it is fine. This happened on both test PCs, and the Xenia emulator reports the same.
 - On low-end PCs the game can run too slowly to play (see "Graphics card and processor" below).
@@ -95,7 +98,7 @@ If you prefer to do it by hand, or the setup program does not work for you:
         git clone https://github.com/anishchandra24/MaddenNFL08-Recompiled.git C:\Madden08
 
 3. Open the `C:\Madden08` folder and double-click `setup.bat`. When it asks, type the path to your extracted game folder (the folder that contains `default.xex`) and press Enter.
-4. Wait. Setup checks your tools and game files, downloads the ReXGlue SDK at the exact version this project uses, applies the three patches, builds the SDK, generates the game's code from your `default.xex`, builds the game, and creates a desktop shortcut. Allow 15 to 30 minutes, including the downloads. Slower PCs or connections will take longer.
+4. Wait. Setup checks your tools and game files, downloads the ReXGlue SDK at the exact version this project uses, applies its patches, builds the SDK, generates the game's code from your `default.xex`, builds the game, and creates a desktop shortcut. Allow 15 to 30 minutes, including the downloads. Slower PCs or connections will take longer.
 5. Start the game from the "Madden NFL 08 Recompiled" shortcut on your desktop, or run `dist\Launch Madden NFL 08.bat`.
 
 Notes:

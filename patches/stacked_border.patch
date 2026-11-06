@@ -1,0 +1,69 @@
+diff --git a/src/graphics/pipeline/shader/dxbc_translator_fetch.cpp b/src/graphics/pipeline/shader/dxbc_translator_fetch.cpp
+--- a/src/graphics/pipeline/shader/dxbc_translator_fetch.cpp
++++ b/src/graphics/pipeline/shader/dxbc_translator_fetch.cpp
+@@ -1749,6 +1749,7 @@ void DxbcShaderTranslator::ProcessTextureFetchInstruction(
+         xenos::FetchOpDimension srv_dimension = instr.dimension;
+         uint32_t srv_grad_component_count = grad_component_count;
+         bool layer_lerp_needed = false;
++        uint32_t stacked_border_temp = UINT32_MAX;
+         if (is_stacked) {
+           srv_dimension = xenos::FetchOpDimension::k2D;
+           srv_grad_component_count = 2;
+@@ -1760,6 +1761,40 @@ void DxbcShaderTranslator::ProcessTextureFetchInstruction(
+           // filtering (with linear, 0.5 was subtracted previously).
+           a_.OpRoundNI(dxbc::Dest::R(coord_and_sampler_temp, 0b0100),
+                        dxbc::Src::R(coord_and_sampler_temp, dxbc::Src::kZZZZ));
++          // stacked_border: on the Xbox 360 the layer of a stacked texture is
++          // addressed like Z of a 3D texture, so with a border clamp mode a
++          // layer outside the stack returns the border color. Direct3D 12
++          // clamps the array index instead. Madden NFL 08 hides the unused
++          // digit of single-digit jersey numbers this way.
++          // x - whether the border color is returned, y - the border color.
++          stacked_border_temp = PushSystemTemp();
++          a_.OpUBFE(dxbc::Dest::R(stacked_border_temp, 0b0001), dxbc::Src::LU(3),
++                    dxbc::Src::LU(16), RequestTextureFetchConstantWord(tfetch_index, 0));
++          a_.OpUGE(dxbc::Dest::R(stacked_border_temp, 0b0001),
++                   dxbc::Src::R(stacked_border_temp, dxbc::Src::kXXXX),
++                   dxbc::Src::LU(uint32_t(xenos::ClampMode::kClampToBorder)));
++          a_.OpUBFE(dxbc::Dest::R(stacked_border_temp, 0b0010), dxbc::Src::LU(6),
++                    dxbc::Src::LU(26), RequestTextureFetchConstantWord(tfetch_index, 2));
++          a_.OpUToF(dxbc::Dest::R(stacked_border_temp, 0b0010),
++                    dxbc::Src::R(stacked_border_temp, dxbc::Src::kYYYY));
++          a_.OpLT(dxbc::Dest::R(stacked_border_temp, 0b0100),
++                  dxbc::Src::R(coord_and_sampler_temp, dxbc::Src::kZZZZ), dxbc::Src::LF(0.0f));
++          a_.OpLT(dxbc::Dest::R(stacked_border_temp, 0b1000),
++                  dxbc::Src::R(stacked_border_temp, dxbc::Src::kYYYY),
++                  dxbc::Src::R(coord_and_sampler_temp, dxbc::Src::kZZZZ));
++          a_.OpOr(dxbc::Dest::R(stacked_border_temp, 0b0100),
++                  dxbc::Src::R(stacked_border_temp, dxbc::Src::kZZZZ),
++                  dxbc::Src::R(stacked_border_temp, dxbc::Src::kWWWW));
++          a_.OpAnd(dxbc::Dest::R(stacked_border_temp, 0b0001),
++                   dxbc::Src::R(stacked_border_temp, dxbc::Src::kXXXX),
++                   dxbc::Src::R(stacked_border_temp, dxbc::Src::kZZZZ));
++          a_.OpUBFE(dxbc::Dest::R(stacked_border_temp, 0b0010), dxbc::Src::LU(2),
++                    dxbc::Src::LU(0), RequestTextureFetchConstantWord(tfetch_index, 5));
++          a_.OpIEq(dxbc::Dest::R(stacked_border_temp, 0b0010),
++                   dxbc::Src::R(stacked_border_temp, dxbc::Src::kYYYY),
++                   dxbc::Src::LU(uint32_t(xenos::BorderColor::k_ABGR_White)));
++          a_.OpAnd(dxbc::Dest::R(stacked_border_temp, 0b0010),
++                   dxbc::Src::R(stacked_border_temp, dxbc::Src::kYYYY), dxbc::Src::LF(1.0f));
+         }
+         uint32_t texture_binding_index_unsigned =
+             FindOrAddTextureBinding(tfetch_index, srv_dimension, false);
+@@ -1892,6 +1927,16 @@ void DxbcShaderTranslator::ProcessTextureFetchInstruction(
+             PopSystemTemp();
+           }
+         }
++        if (stacked_border_temp != UINT32_MAX) {
++          // stacked_border: replace the result with the border color if the
++          // layer is outside the stack.
++          a_.OpMovC(dxbc::Dest::R(system_temp_result_, used_result_nonzero_components),
++                    dxbc::Src::R(stacked_border_temp, dxbc::Src::kXXXX),
++                    dxbc::Src::R(stacked_border_temp, dxbc::Src::kYYYY),
++                    dxbc::Src::R(system_temp_result_));
++          // Release stacked_border_temp.
++          PopSystemTemp();
++        }
+       }
+       if (instr.dimension == xenos::FetchOpDimension::k3DOrStacked) {
+         // Close the stacked/3D check.

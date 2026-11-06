@@ -24,6 +24,7 @@ $PatchFile3 = Join-Path $RepoRoot "patches\texture_mip_layout.patch"
 $PatchFile4 = Join-Path $RepoRoot "patches\codegen_dcbz128.patch"
 $PatchFile5 = Join-Path $RepoRoot "patches\graphics_speedups.patch"
 $PatchFile6 = Join-Path $RepoRoot "patches\delete_on_close.patch"
+$PatchFile7 = Join-Path $RepoRoot "patches\stacked_border.patch"
 $failed = $false
 $sw = [Diagnostics.Stopwatch]::StartNew()
 . (Join-Path $PSScriptRoot "libmspack.ps1")
@@ -303,10 +304,27 @@ if (Test-Path -LiteralPath $PatchFile3) {
         } else {
             throw "The delete-on-close patch reported success but the new code is not in the file"
         }
-    }# ---- Build the SDK ----
+    }    # ---- Stacked texture border patch (fixes the extra 0 on single-digit jersey numbers) ----
+    $sbTarget = Join-Path $SdkDir "src\graphics\pipeline\shader\dxbc_translator_fetch.cpp"
+    if ((Get-Content $sbTarget -Raw).Contains("stacked_border")) {
+        Ok "Stacked texture border patch already applied"
+    } else {
+        & git -C $SdkDir apply --whitespace=nowarn $PatchFile7
+        if ($LASTEXITCODE -ne 0) {
+            Warn "Stacked texture border patch did not apply cleanly; retrying while ignoring whitespace differences"
+            & git -C $SdkDir apply --ignore-whitespace --whitespace=nowarn $PatchFile7
+            if ($LASTEXITCODE -ne 0) { throw "The stacked texture border patch could not be applied" }
+        }
+        if ((Get-Content $sbTarget -Raw).Contains("stacked_border")) {
+            Ok "Stacked texture border patch applied"
+        } else {
+            throw "The stacked texture border patch reported success but the new code is not in the file"
+        }
+    }
+# ---- Build the SDK ----
     Write-Host ""
     Write-Host "--- Building the SDK (the slow step: expect a while the first time) ---"
-    $stamp = $SdkCommit + "|" + (Get-FileHash -LiteralPath $PatchFile2 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile3 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile4 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile5 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile6 -Algorithm SHA256).Hash
+    $stamp = $SdkCommit + "|" + (Get-FileHash -LiteralPath $PatchFile2 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile3 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile4 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile5 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile6 -Algorithm SHA256).Hash + "|" + (Get-FileHash -LiteralPath $PatchFile7 -Algorithm SHA256).Hash
     $haveStamp = (Test-Path $StampFile) -and ((Get-Content $StampFile -Raw).Trim() -eq $stamp)
     $runtimeDll = Join-Path $SdkInstallDir "bin\rexruntimerd.dll"
     if ($haveStamp -and (Test-Path $runtimeDll) -and (-not $Rebuild)) {
