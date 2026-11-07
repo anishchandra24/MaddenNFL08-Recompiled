@@ -21,6 +21,8 @@
 #include <rex/system/util/xdbf_utils.h>
 #include <rex/ui/window.h>
 
+#include "startup_checks.h"
+
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -50,6 +52,16 @@ class Madden08App : public rex::ReXApp {
   // resolution is requested. Ask for 1 ms for this process.
   void OnPreSetup(rex::RuntimeConfig& config) override {
     timeBeginPeriod(1);
+    startup_checks::CheckGraphicsCard();
+  }
+#endif
+
+#ifdef _WIN32
+  // Startup checks: default game folder, game version, crash and exit messages.
+  void OnConfigurePaths(rex::PathConfig& paths) override {
+    startup_checks::InstallHandlers();
+    startup_checks::DefaultGameFolder(paths.game_data_root);
+    startup_checks::CheckGameVersion(paths.game_data_root);
   }
 #endif
 
@@ -62,6 +74,10 @@ class Madden08App : public rex::ReXApp {
   }
   void OnPreLaunchModule() override {
     DumpGuestImage();
+#ifdef _WIN32
+    startup_checks::g_game_started = true;
+    startup_checks::MaybeTestCrash();
+#endif
     ApplyWindowExtras();
   }
 

@@ -113,7 +113,7 @@ Notes:
 
 ## Reporting problems and test results
 
-Found a bug, or hit a problem during setup? Please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose). Test reports are just as welcome as bug reports, including "it worked": this project has only been tested on two PCs, so every report helps. Useful things to include are your Windows version, your CPU, graphics card and RAM, whether setup finished, and the last lines of the logs. The setup program's log is `%TEMP%\Madden08-Setup.log`, and the setup steps log to `.local\logs` inside the install folder.
+Found a bug, or hit a problem during setup? Please [open an issue](https://github.com/anishchandra24/MaddenNFL08-Recompiled/issues/new/choose). Test reports are just as welcome as bug reports, including "it worked": this project has only been tested on two PCs, so every report helps. Useful things to include are your Windows version, your CPU, graphics card and RAM, whether setup finished, and the last lines of the logs. The setup program's log is `%TEMP%\Madden08-Setup.log`, and the setup steps log to `.local\logs` inside the install folder. The game itself writes a log for each run to `dist\logs` inside the install folder (`madden08_001.log`, `madden08_002.log` and so on). If it crashes, it also writes a `crash_...txt` report there and tells you where to find it.
 
 Please do not post or link game files. Requests for game files will be removed.
 

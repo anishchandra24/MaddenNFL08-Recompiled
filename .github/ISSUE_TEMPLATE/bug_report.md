@@ -24,3 +24,4 @@ Please do not post or link game files. Requests for game files will be removed.
 **Logs** (paste the last 30 lines, or attach the files)
 - The setup program's log: `%TEMP%\Madden08-Setup.log`
 - The setup steps: the `.local\logs` folder inside the install folder
+- If the game itself has the problem: the newest `madden08_###.log` and any `crash_...txt` file from the `dist\logs` folder inside the install folder
