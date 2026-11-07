@@ -44,7 +44,6 @@ Known issues:
 - Tiny white lines can flicker in a few places before the snap. They do not affect play.
 - The first time a new scene appears, the game can hitch for a moment while graphics shaders are built. It is smooth the next time. Short stutters can also happen when a game loads.
 - The countdown beeps during the 40-yard dash in Superstar practice drills do not play.
-- On the first launch on a PC (or the first launch on a new graphics chip), the grass can look brown and the game can lag while shaders are built. Restart the game and it is fine. This happened on both test PCs, and the Xenia emulator reports the same.
 - On low-end PCs the game can run too slowly to play (see "Graphics card and processor" below).
 - Online features do not work, including the NFL news and sports news screens, which need EA's servers.
 

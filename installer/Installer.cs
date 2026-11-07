@@ -573,7 +573,7 @@ namespace Madden08Setup
                 Warn("The game was not found in " + dist + ". Click Install first.");
                 return;
             }
-            ProcessStartInfo psi = new ProcessStartInfo(exe, "--game_data_root=\"" + Path.Combine(dir, "assets") + "\" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov");
+            ProcessStartInfo psi = new ProcessStartInfo(exe, "--game_data_root=\"" + Path.Combine(dir, "assets") + "\" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov --async_shader_compilation=false");
             psi.WorkingDirectory = dist;
             psi.UseShellExecute = false;
             try { Process.Start(psi); }

@@ -19,7 +19,7 @@ if (-not $failed) {
             if (-not (Test-Path $distIco)) {
                 Write-Host "The game will open for a few seconds to make its icon, then close by itself."
                 Write-Host "(If Windows asks about the firewall, you can click Cancel.)"
-                $p = Start-Process -FilePath $exe -WorkingDirectory $DistDir -PassThru -ArgumentList @(("--game_data_root=`"" + $AssetsDir + "`""), "--gpu_plugin=xenos", "--mnk_mode=true", "--render_target_path_d3d12=rov")
+                $p = Start-Process -FilePath $exe -WorkingDirectory $DistDir -PassThru -ArgumentList @(("--game_data_root=`"" + $AssetsDir + "`""), "--gpu_plugin=xenos", "--mnk_mode=true", "--render_target_path_d3d12=rov", "--async_shader_compilation=false")
                 $deadline = (Get-Date).AddSeconds(90)
                 while ((-not (Test-Path $distIco)) -and (-not $p.HasExited) -and ((Get-Date) -lt $deadline)) { Start-Sleep -Seconds 2 }
                 Start-Sleep -Seconds 3
@@ -59,7 +59,7 @@ if (-not $failed) {
             $ws = New-Object -ComObject WScript.Shell
             $lnk = $ws.CreateShortcut($lnkPath)
             $lnk.TargetPath = $exe
-            $lnk.Arguments = "--game_data_root=`"$AssetsDir`" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov"
+            $lnk.Arguments = "--game_data_root=`"$AssetsDir`" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov --async_shader_compilation=false"
             $lnk.WorkingDirectory = $DistDir
             if (Test-Path $distIco) { $lnk.IconLocation = $distIco + ",0" } else { $lnk.IconLocation = $exe + ",0" }
             $lnk.Description = "Madden NFL 08 Recompiled"

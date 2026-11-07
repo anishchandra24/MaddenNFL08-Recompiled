@@ -68,9 +68,9 @@ if (-not $failed) {
             if (-not (Test-Path $src)) { throw "missing in the SDK: $dll" }
             Copy-Item $src $DistDir -Force
         }
-        $bat = "@echo off`r`ncd /d `"%~dp0`"`r`nstart `"`" `"%~dp0madden08.exe`" --game_data_root=`"$AssetsDir`" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov`r`n"
+        $bat = "@echo off`r`ncd /d `"%~dp0`"`r`nstart `"`" `"%~dp0madden08.exe`" --game_data_root=`"$AssetsDir`" --gpu_plugin=xenos --mnk_mode=true --render_target_path_d3d12=rov --async_shader_compilation=false`r`n"
         Set-Content -Path (Join-Path $DistDir "Launch Madden NFL 08.bat") -Value $bat -Encoding ascii
-        $toml = "# Written by setup: defaults for starting madden08.exe without arguments.`r`n# Command-line arguments (as in the desktop shortcut) override these.`r`ngpu_plugin = `"xenos`"`r`nrender_target_path_d3d12 = `"rov`"`r`nmnk_mode = true`r`n"
+        $toml = "# Written by setup: defaults for starting madden08.exe without arguments.`r`n# Command-line arguments (as in the desktop shortcut) override these.`r`ngpu_plugin = `"xenos`"`r`nrender_target_path_d3d12 = `"rov`"`r`nmnk_mode = true`r`nasync_shader_compilation = false`r`n"
         Set-Content -Path (Join-Path $DistDir "madden08.toml") -Value $toml -Encoding ascii
         Ok ("game built: dist\madden08.exe ({0:N1} MB)" -f ((Get-Item (Join-Path $DistDir "madden08.exe")).Length / 1MB))
     } catch {
