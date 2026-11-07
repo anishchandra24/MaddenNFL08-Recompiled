@@ -176,18 +176,6 @@ namespace Madden08Setup
                 else if (Directory.Exists(saves)) done += "\r\n\r\nYour saves and settings were kept.";
                 done += "\r\n\r\nYour game folder, Git and Visual Studio were not touched.";
                 MessageBox.Show(owner, done, Title, MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                if (fromCopy)
-                {
-                    try
-                    {
-                        ProcessStartInfo del = new ProcessStartInfo("cmd.exe", "/c ping 127.0.0.1 -n 4 >nul & del /f /q \"" + Application.ExecutablePath + "\"");
-                        del.UseShellExecute = false;
-                        del.CreateNoWindow = true;
-                        Process.Start(del);
-                    }
-                    catch (Exception) { }
-                }
                 return 1;
             }
             catch (Exception ex)

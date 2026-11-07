@@ -83,6 +83,8 @@ This is an early version, tested so far on two PCs (see "Tested on" above). Repo
 4. Wait. If Git or Visual Studio 2022 Community are missing, the program installs them with Windows' package installer (Windows asks for permission), then downloads the project and builds the game. Allow 15 to 30 minutes, plus the downloads and any Visual Studio install.
 5. When it says it is done, click "Play", or use the "Madden NFL 08 Recompiled" shortcut on your desktop.
 
+To update an existing install, download the newest setup program, run it and click "Install" again. It downloads the changes and rebuilds the game, and your saves are kept. An update that changes the SDK patches takes about as long as the first install.
+
 To remove it, use Settings, Apps, "Madden NFL 08 Recompiled" (or the "Uninstall" button in the setup program). Uninstalling never touches your game files, and it asks before deleting your saves.
 
 Automatic installation of Visual Studio has not been tested on a PC that does not have it. If you try it, please open an issue and tell me how it went, whether it worked or not. If it fails, install the tools by hand (see "What you need") and run the setup program again.

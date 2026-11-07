@@ -8,6 +8,16 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
+// Version details shown in the file's Properties window.
+[assembly: AssemblyTitle("Madden NFL 08 Recompiled Setup")]
+[assembly: AssemblyDescription("Builds Madden NFL 08 Recompiled from source with your own copy of the game")]
+[assembly: AssemblyCompany("anishchandra24")]
+[assembly: AssemblyProduct("Madden NFL 08 Recompiled")]
+[assembly: AssemblyCopyright("GPL-3.0 - https://github.com/anishchandra24/MaddenNFL08-Recompiled")]
+[assembly: AssemblyVersion("1.5.0.0")]
+[assembly: AssemblyFileVersion("1.5.0.0")]
+[assembly: AssemblyInformationalVersion("1.5")]
+
 namespace Madden08Setup
 {
     static class Program
@@ -24,7 +34,7 @@ namespace Madden08Setup
 
     class SetupForm : Form
     {
-        const string WizardVersion = "1.4";
+        const string WizardVersion = "1.5";
         const string RepoUrl = "https://github.com/anishchandra24/MaddenNFL08-Recompiled.git";
         const string VsWorkload = "Microsoft.VisualStudio.Workload.NativeDesktop";
         const string VsClang = "Microsoft.VisualStudio.Component.VC.Llvm.Clang";
@@ -142,6 +152,7 @@ namespace Madden08Setup
                 playButton.Enabled = true;
                 statusLabel.Text = "Installed in " + registered + ".";
             }
+            if (installedDir != null) PrefillGameFolder(installedDir);
             WriteLogFile("---- Madden NFL 08 Recompiled setup wizard " + WizardVersion + " started on Windows " + Environment.OSVersion.Version + " ----");
         }
 
@@ -311,6 +322,44 @@ namespace Madden08Setup
             Thread t = new Thread(delegate() { Work(game, dir); });
             t.IsBackground = true;
             t.Start();
+        }
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+        static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(string name, uint access, uint share, IntPtr security, uint disposition, uint flags, IntPtr template);
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+        static extern uint GetFinalPathNameByHandleW(Microsoft.Win32.SafeHandles.SafeFileHandle handle, StringBuilder buffer, uint length, uint flags);
+
+        // The real folder a link (such as the install's "assets" junction) points to, or null.
+        static string ResolveLinkTarget(string path)
+        {
+            using (Microsoft.Win32.SafeHandles.SafeFileHandle h = CreateFileW(path, 0, 7, IntPtr.Zero, 3, 0x02000000, IntPtr.Zero))
+            {
+                if (h.IsInvalid) return null;
+                StringBuilder sb = new StringBuilder(1024);
+                uint n = GetFinalPathNameByHandleW(h, sb, (uint)sb.Capacity, 0);
+                if (n == 0 || n >= sb.Capacity) return null;
+                string s = sb.ToString();
+                if (s.StartsWith(@"\\?\UNC\")) return @"\\" + s.Substring(8);
+                if (s.StartsWith(@"\\?\")) return s.Substring(4);
+                return s;
+            }
+        }
+
+        // On an existing install, fill in the game folder from where its "assets" link points,
+        // so updating only needs a click on Install.
+        void PrefillGameFolder(string dir)
+        {
+            try
+            {
+                if (gameBox.Text.Trim().Length > 0) return;
+                string assets = Path.Combine(dir, "assets");
+                if (!Directory.Exists(assets)) return;
+                string real = ResolveLinkTarget(assets);
+                if (real == null) return;
+                if (string.Equals(real.TrimEnd('\\'), assets.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase)) return; // a plain folder, not a link
+                if (File.Exists(Path.Combine(real, "default.xex"))) gameBox.Text = real;
+            }
+            catch (Exception) { }
         }
 
         void Work(string game, string dir)
@@ -526,7 +575,7 @@ namespace Madden08Setup
             Log("");
             Log("Running the project's setup script...");
             SetStatus("Building the game (this is the long part)...");
-            string args = "-NoProfile -ExecutionPolicy Bypass -File \"" + script + "\" -GameDataRoot \"" + game + "\"";
+            string args = "-NoProfile -ExecutionPolicy RemoteSigned -File \"" + script + "\" -GameDataRoot \"" + game + "\"";
             int code = RunProcess("powershell.exe", args, dir, Path.GetDirectoryName(git), false);
             if (code != 0)
                 throw new Exception("Setup did not finish (exit code " + code + "). Read the messages above. You can run this installer again; finished steps are skipped.");
