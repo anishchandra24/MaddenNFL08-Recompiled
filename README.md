@@ -85,6 +85,8 @@ This is an early version, tested so far on two PCs (see "Tested on" above). Repo
 
 To update an existing install, download the newest setup program, run it and click "Install" again. It downloads the changes and rebuilds the game, and your saves are kept. An update that changes the SDK patches takes about as long as the first install.
 
+If your antivirus flags the setup program: some antivirus programs have flagged `MaddenNFL08-Recompiled-Setup.exe`. This is a false positive. The detections are machine-learning guesses, not known viruses: the program is new, is not code-signed, and does what an installer does, starting PowerShell, Git and Windows' package installer to download the tools and build the game. Its complete source code is in the `installer` folder of this repository, and the release notes give the file's SHA-256 fingerprint so you can check that your download is the published file. If you would rather not run it, use the manual install below, which does not use the setup program at all.
+
 To remove it, use Settings, Apps, "Madden NFL 08 Recompiled" (or the "Uninstall" button in the setup program). Uninstalling never touches your game files, and it asks before deleting your saves.
 
 Automatic installation of Visual Studio has not been tested on a PC that does not have it. If you try it, please open an issue and tell me how it went, whether it worked or not. If it fails, install the tools by hand (see "What you need") and run the setup program again.
