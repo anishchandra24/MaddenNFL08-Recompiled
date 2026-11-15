@@ -59,6 +59,11 @@ function Import-VsEnvironment {
         $i = $l.IndexOf("=")
         if ($i -gt 0) { [Environment]::SetEnvironmentVariable($l.Substring(0, $i), $l.Substring($i + 1), "Process") }
     }
+    # vcvars64 does not put Visual Studio's own Clang on the PATH; add it if needed.
+    if (-not (Get-Command clang++ -ErrorAction SilentlyContinue)) {
+        $llvm = Join-Path $vs "VC\Tools\Llvm\x64\bin"
+        if (Test-Path (Join-Path $llvm "clang++.exe")) { $env:Path = $llvm + ";" + $env:Path }
+    }
     Ok "Visual Studio build environment loaded"
 }
 
