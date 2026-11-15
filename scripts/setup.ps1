@@ -73,6 +73,8 @@ function Import-VsEnvironment {
         $cm = Join-Path $vs "Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
         if (Test-Path (Join-Path $cm "cmake.exe")) { $env:Path = $cm + ";" + $env:Path }
     }
+    # Build tools run commands through %ComSpec%; make sure it is the real command prompt.
+    $env:ComSpec = Join-Path $env:SystemRoot "System32\cmd.exe"
     Ok "Visual Studio build environment loaded"
 }
 
