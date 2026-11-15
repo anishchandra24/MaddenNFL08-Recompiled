@@ -64,6 +64,15 @@ function Import-VsEnvironment {
         $llvm = Join-Path $vs "VC\Tools\Llvm\x64\bin"
         if (Test-Path (Join-Path $llvm "clang++.exe")) { $env:Path = $llvm + ";" + $env:Path }
     }
+    # Nor does it always put its own CMake and Ninja on the PATH either (for example Build Tools).
+    if (-not (Get-Command ninja -ErrorAction SilentlyContinue)) {
+        $nj = Get-ChildItem $vs -Recurse -Depth 8 -Filter ninja.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($nj) { $env:Path = $nj.DirectoryName + ";" + $env:Path }
+    }
+    if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
+        $cm = Join-Path $vs "Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+        if (Test-Path (Join-Path $cm "cmake.exe")) { $env:Path = $cm + ";" + $env:Path }
+    }
     Ok "Visual Studio build environment loaded"
 }
 
